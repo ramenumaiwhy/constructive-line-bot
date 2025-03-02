@@ -1,0 +1,29 @@
+{
+  "name": "constructive-line-bot",
+  "version": "0.1.0",
+  "description": "A LINE bot that promotes constructive dialogue using AI",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "test": "vitest",
+    "lint": "biome lint .",
+    "format": "biome format . --write"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.8.2",
+    "@line/bot-sdk": "^8.2.0",
+    "hono": "^4.0.8",
+    "@google/generative-ai": "^0.2.1"
+  },
+  "devDependencies": {
+    "vite": "^5.1.4",
+    "vitest": "^1.3.1",
+    "@biomejs/biome": "1.5.3",
+    "@types/node": "^20.11.20",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+} 
