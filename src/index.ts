@@ -1,14 +1,18 @@
 /**
- * シンプルなテスト用Honoアプリケーション
+ * LINE Bot アプリケーション
  * 
- * 開発環境でHonoが正常に動作することを確認するための
- * 最小限の構成を提供します。
+ * Honoを使用したLINE Botアプリケーションのメインエントリーポイント
  * 
  * @module index
  */
 
 import { serve } from '@hono/node-server';
 import { Hono } from 'hono';
+import { lineWebhookHandler } from './handlers/line-webhook';
+import dotenv from 'dotenv';
+
+// 環境変数の読み込み
+dotenv.config();
 
 /**
  * アプリケーションインスタンスを作成
@@ -19,19 +23,13 @@ const app = new Hono();
  * ルートパスのハンドラー
  */
 app.get('/', (c) => {
-  return c.text('Hello, Hono!');
+  return c.text('Constructive LINE Bot is running!');
 });
 
 /**
- * JSONを返すテストエンドポイント
+ * LINE Webhookエンドポイント
  */
-app.get('/test', (c) => {
-  return c.json({
-    status: 'success',
-    message: 'Hono is working!',
-    timestamp: new Date().toISOString()
-  });
-});
+app.post('/webhook', lineWebhookHandler);
 
 /**
  * ヘルスチェックエンドポイント
