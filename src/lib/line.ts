@@ -32,20 +32,6 @@ export const lineClient = new messagingApi.MessagingApiClient(clientConfig);
  * await sendTextMessage("reply-token-123", "こんにちは！");
  * ```
  */
-/**
- * テキストメッセージを送信する関数
- * @param replyToken - LINEプラットフォームから受け取った返信用トークン
- * @param text - 送信するテキストメッセージの内容
- * @returns メッセージ送信のレスポンス
- * @throws {Error} メッセージ送信に失敗した場合
- */
-/**
- * テキストメッセージを送信する関数
- * @param replyToken - LINEプラットフォームから受け取った返信用トークン
- * @param text - 送信するテキストメッセージの内容
- * @returns メッセージ送信のレスポンス
- * @throws {Error} メッセージ送信に失敗した場合
- */
 export const sendTextMessage = async (
   replyToken: string,
   text: string
@@ -85,34 +71,6 @@ export const sendTextMessage = async (
     });
     throw error;
   }
-};
-  try {
-    // タイムアウト設定付きでAPIを呼び出す
-    const response = await Promise.race([
-      lineClient.replyMessage({
-        replyToken,
-        messages: [message],
-      }),
-      new Promise((_, reject) => 
-        setTimeout(() => reject(new Error("LINE API timeout")), 10000)
-      )
-    ]);
-    
-    console.log("Message sent successfully to LINE");
-    return response as messagingApi.ReplyMessageResponse;
-  } catch (error) {
-    console.error("Failed to send message to LINE:", {
-      error: error,
-      replyToken: replyToken,
-      textLength: finalText.length
-    });
-    throw error;
-  }
-};
-  return await lineClient.replyMessage({
-    replyToken,
-    messages: [message],
-  });
 };
 
 /**
