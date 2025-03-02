@@ -20,9 +20,9 @@
 ### 開発ツール
 
 - [TypeScript](https://www.typescriptlang.org/) - 型安全な開発
-- [Vite](https://vitejs.dev/) - 高速なビルドツール
+- [Bun](https://bun.sh/) - 高速なJavaScriptランタイム＆ビルドツール
+- [Vitest](https://vitest.dev/) - テストフレームワーク
 - [Biome](https://biomejs.dev/) - リンター＆フォーマッター
-- [pnpm](https://pnpm.io/) - 高速なパッケージマネージャー
 
 ## プロジェクト構成
 
@@ -53,7 +53,7 @@ graph TD
 
 ```bash
 # パッケージのインストール
-pnpm install
+bun install
 ```
 
 ### 環境変数の設定
@@ -76,13 +76,13 @@ GOOGLE_API_KEY=your_google_api_key
 
 ```bash
 # 開発サーバーを起動
-pnpm dev
+bun dev
 ```
 
 ### 利用可能なコマンド
 
-- `pnpm dev` - 開発サーバーの起動
-- `pnpm build` - プロダクションビルド
-- `pnpm test` - テストの実行
-- `pnpm lint` - コードの静的解析
-- `pnpm format` - コードの自動フォーマット
+- `bun dev` - 開発サーバーの起動
+- `bun build` - プロダクションビルド
+- `bun test` - テストの実行
+- `bun lint` - コードの静的解析
+- `bun format` - コードの自動フォーマット
