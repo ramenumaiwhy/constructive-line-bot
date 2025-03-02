@@ -48,11 +48,18 @@ app.get('/health', (c) => c.text('OK'));
 const port = process.env.PORT || 3000;
 console.log(`Server is running on port ${port}`);
 
-/**
- * サーバー起動
- * Honoアプリケーションをnode-serverを使って起動
- */
-serve({
-  fetch: app.fetch,
-  port: Number(port),
-}); 
+// Vercel Serverless Functions向けのエクスポート
+export default app;
+
+// ローカル開発環境での実行用
+// Bunやその他の環境変数を使って判断する
+if (process.env.NODE_ENV !== 'production') {
+  /**
+   * サーバー起動
+   * Honoアプリケーションをnode-serverを使って起動
+   */
+  serve({
+    fetch: app.fetch,
+    port: Number(port),
+  });
+} 
