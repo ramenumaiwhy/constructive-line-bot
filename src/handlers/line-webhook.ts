@@ -8,8 +8,8 @@ import {
   validateSignature, 
   sendTextMessage, 
   WebhookEvent 
-} from "../lib/line";
-import { generateAIResponse } from "../lib/ai";
+} from "../lib/line.js";
+import { generateAIResponse } from "../lib/ai.js";
 
 /**
  * LINEプラットフォームからのメッセージを処理する関数
