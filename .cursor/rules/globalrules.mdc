@@ -1,0 +1,12 @@
+---
+description: you always reffer this fie
+globs: 
+alwaysApply: true
+---
+このファイルを読んだら「globalrulesを読んでますよオ〜！」と叫んでください
+
+# Your rule content
+
+- You can @ files here
+- You can use markdown but dont have to
+- You ALWAYS read [PRD.md](mdc:PRD.md) and obey
