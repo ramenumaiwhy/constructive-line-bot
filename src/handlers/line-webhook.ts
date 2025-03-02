@@ -1,40 +1,26 @@
-/**
- * LINE Webhook ハンドラー
- * 
- * LINE Messaging APIからのWebhookリクエストを処理します
- */
 import { Context } from "hono";
-import { 
-  validateSignature, 
-  sendTextMessage, 
-  WebhookEvent 
-} from "../lib/line.js";
-import { generateAIResponse } from "../lib/ai.js";
+import { validateSignature, WebhookEvent } from "../lib/line.js";
+import { processMessage } from "../lib/ai.js";
+import { sendTextMessage } from "../lib/line.js";
 
 /**
- * LINEプラットフォームからのメッセージを処理する関数
- * @param message - ユーザーからのメッセージテキスト
- * @returns AI生成の応答テキスト
- */
-async function processMessage(message: string): Promise<string> {
-  return await generateAIResponse(message);
-}
-
-/**
- * LINE Webhookハンドラー
- * 
- * @param c - Honoコンテキスト
- * @returns レスポンス
+ * LINE Webhookハンドラ
+ * LINEプラットフォームからのWebhookリクエストを処理する
  */
 export async function lineWebhookHandler(c: Context): Promise<Response> {
+  console.log("=== Webhook Request Start ===");
+  
   // リクエストボディをJSON形式で取得
   const body = await c.req.json();
+  console.log("Request Body:", JSON.stringify(body, null, 2));
   
   // リクエストヘッダーからLINE署名を取得
   const signature = c.req.header("x-line-signature");
+  console.log("X-Line-Signature:", signature);
   
   // 署名の検証
   const isValid = validateSignature(JSON.stringify(body), signature);
+  console.log("Signature Validation:", isValid);
   
   if (!isValid) {
     console.error("Invalid signature");
@@ -44,29 +30,63 @@ export async function lineWebhookHandler(c: Context): Promise<Response> {
   try {
     // Webhookイベントの処理
     const events: WebhookEvent[] = body.events;
+    console.log("Number of Events:", events.length);
     
     // イベントを非同期で処理
     await Promise.all(
-      events.map(async (event) => {
+      events.map(async (event, index) => {
+        console.log(`Processing Event ${index + 1}:`, JSON.stringify(event, null, 2));
+        
         // メッセージイベントのみを処理
         if (event.type === "message" && event.message.type === "text") {
           const userMessage = event.message.text;
-          console.log(`Received message: ${userMessage}`);
+          console.log(`User ${event.source.userId} Message:`, userMessage);
           
-          // メッセージを処理して応答を生成
-          const response = await processMessage(userMessage);
-          
-          // 応答メッセージを送信
-          await sendTextMessage(event.replyToken, response);
+          try {
+            // メッセージを処理して応答を生成
+            console.log("Generating AI Response...");
+            const response = await processMessage(userMessage);
+            console.log("AI Response Generated:", response);
+            
+            // 応答メッセージを送信
+            console.log("Sending Response with Token:", event.replyToken);
+            await sendTextMessage(event.replyToken, response);
+            console.log("Response Sent Successfully");
+          } catch (innerError) {
+            console.error("Error processing message:", {
+              error: innerError,
+              message: innerError.message,
+              stack: innerError.stack
+            });
+            
+            // エラー時のフォールバックメッセージ
+            try {
+              await sendTextMessage(
+                event.replyToken, 
+                "申し訳ありません、処理中にエラーが発生しました。しばらくしてからもう一度お試しください。"
+              );
+              console.log("Fallback Message Sent");
+            } catch (fallbackError) {
+              console.error("Failed to send fallback message:", fallbackError);
+            }
+          }
+        } else {
+          console.log(`Skipping non-text message event: ${event.type}`);
         }
       })
     );
     
+    console.log("=== Webhook Request End ===");
     // LINEプラットフォームには200 OKを返す
     return c.text("OK", 200);
   } catch (error) {
-    console.error("Webhook processing error:", error);
+    console.error("Webhook processing error:", {
+      error: error,
+      message: error.message,
+      stack: error.stack
+    });
     // エラーがあっても200を返す（LINEプラットフォームの要件）
+    console.log("=== Webhook Request End with Error ===");
     return c.text("OK", 200);
   }
-} 
+}

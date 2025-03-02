@@ -32,15 +32,83 @@ export const lineClient = new messagingApi.MessagingApiClient(clientConfig);
  * await sendTextMessage("reply-token-123", "こんにちは！");
  * ```
  */
+/**
+ * テキストメッセージを送信する関数
+ * @param replyToken - LINEプラットフォームから受け取った返信用トークン
+ * @param text - 送信するテキストメッセージの内容
+ * @returns メッセージ送信のレスポンス
+ * @throws {Error} メッセージ送信に失敗した場合
+ */
+/**
+ * テキストメッセージを送信する関数
+ * @param replyToken - LINEプラットフォームから受け取った返信用トークン
+ * @param text - 送信するテキストメッセージの内容
+ * @returns メッセージ送信のレスポンス
+ * @throws {Error} メッセージ送信に失敗した場合
+ */
 export const sendTextMessage = async (
   replyToken: string,
   text: string
 ): Promise<messagingApi.ReplyMessageResponse> => {
+  console.log(`Sending message to LINE. Token: ${replyToken}, Text length: ${text.length}`);
+  
+  // テキストが長すぎる場合は切り詰める（LINEの制限は5000文字）
+  const MAX_TEXT_LENGTH = 4000; // 余裕を持って4000文字に
+  const finalText = text.length > MAX_TEXT_LENGTH
+    ? text.substring(0, MAX_TEXT_LENGTH) + "\n...(続きがあります)"
+    : text;
+  
   const message: TextMessage = {
     type: "text",
-    text,
+    text: finalText,
   };
 
+  try {
+    // タイムアウト設定付きでAPIを呼び出す
+    const response = await Promise.race([
+      lineClient.replyMessage({
+        replyToken,
+        messages: [message],
+      }),
+      new Promise((_, reject) => 
+        setTimeout(() => reject(new Error("LINE API timeout")), 10000)
+      )
+    ]);
+    
+    console.log("Message sent successfully to LINE");
+    return response as messagingApi.ReplyMessageResponse;
+  } catch (error) {
+    console.error("Failed to send message to LINE:", {
+      error: error,
+      replyToken: replyToken,
+      textLength: finalText.length
+    });
+    throw error;
+  }
+};
+  try {
+    // タイムアウト設定付きでAPIを呼び出す
+    const response = await Promise.race([
+      lineClient.replyMessage({
+        replyToken,
+        messages: [message],
+      }),
+      new Promise((_, reject) => 
+        setTimeout(() => reject(new Error("LINE API timeout")), 10000)
+      )
+    ]);
+    
+    console.log("Message sent successfully to LINE");
+    return response as messagingApi.ReplyMessageResponse;
+  } catch (error) {
+    console.error("Failed to send message to LINE:", {
+      error: error,
+      replyToken: replyToken,
+      textLength: finalText.length
+    });
+    throw error;
+  }
+};
   return await lineClient.replyMessage({
     replyToken,
     messages: [message],

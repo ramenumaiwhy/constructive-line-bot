@@ -58,20 +58,66 @@ export async function generateAIResponse(
   userMessage: string,
   chatHistory: Message[] = []
 ): Promise<string> {
+  console.log("Generating AI response for:", userMessage);
+  
   try {
-    const { text } = await generateText({
-      model,
-      messages: [
-        { role: "system", content: SYSTEM_PROMPT },
-        ...chatHistory,
-        { role: "user", content: userMessage },
-      ],
-    });
-
-    return text;
+    // タイムアウト設定付きでAI応答を生成
+    const result = await Promise.race([
+      generateText({
+        model,
+        messages: [
+          { role: "system", content: SYSTEM_PROMPT },
+          ...chatHistory,
+          { role: "user", content: userMessage },
+        ],
+      }),
+      new Promise<never>((_, reject) => 
+        setTimeout(() => reject(new Error('AI response generation timeout')), 15000)
+      )
+    ]);
+    
+    console.log("AI response generated successfully");
+    return (result as any).text;
   } catch (error) {
-    console.error("AI応答生成エラー:", error);
+    console.error("AI response generation error:", {
+      error: error,
+      message: error instanceof Error ? error.message : "Unknown error",
+      stack: error instanceof Error ? error.stack : undefined
+    });
+    
+    // エラー種別に応じたフォールバックメッセージ
+    if (error instanceof Error && error.message?.includes('timeout')) {
+      return "応答生成に時間がかかっています。もう少し簡潔な質問をいただくか、後ほどお試しください。";
+    }
+    
     return "申し訳ありません。現在応答を生成できません。しばらく経ってからもう一度お試しください。";
+  }
+}
+
+/**
+ * LINEメッセージを処理する関数
+ * @param userMessage - ユーザーからのメッセージ
+ * @returns 生成された応答テキスト
+ */
+export async function processMessage(userMessage: string): Promise<string> {
+  console.log("Processing message:", userMessage);
+  
+  try {
+    // ユーザーメッセージを加工する必要がある場合はここで行う
+    const processedMessage = userMessage.trim();
+    
+    // AI応答を生成
+    const response = await generateAIResponse(processedMessage);
+    return response;
+  } catch (error) {
+    console.error("Error processing message:", {
+      error: error,
+      message: error instanceof Error ? error.message : "Unknown error",
+      stack: error instanceof Error ? error.stack : undefined
+    });
+    
+    // エラー発生時は汎用的なメッセージを返す
+    return "申し訳ありません。メッセージを処理できませんでした。しばらくしてからもう一度お試しください。";
   }
 }
 
