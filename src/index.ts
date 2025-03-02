@@ -49,7 +49,9 @@ const port = process.env.PORT || 3000;
 console.log(`Server is running on port ${port}`);
 
 // Vercel Serverless Functions向けのエクスポート
-export default app;
+export default {
+  fetch: app.fetch
+};
 
 // ローカル開発環境での実行用
 // Bunやその他の環境変数を使って判断する
