@@ -8,7 +8,7 @@
 
 import { serve } from '@hono/node-server';
 import { Hono } from 'hono';
-import { lineWebhookHandler } from './handlers/line-webhook';
+import { lineWebhookHandler } from './handlers/line-webhook.js';
 import dotenv from 'dotenv';
 
 // 環境変数の読み込み
