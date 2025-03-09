@@ -1,21 +1,28 @@
-import { Context } from "hono";
-import { validateSignature, WebhookEvent } from "../lib/line.js";
+import { WebhookEvent } from "../lib/line.js";
 import { processMessage } from "../lib/ai.js";
 import { sendTextMessage } from "../lib/line.js";
+import { validateSignature } from "../lib/line.js";
+
+export interface WebhookContext {
+  req: Request;
+  header: (name: string) => string | undefined;
+  json: () => Promise<any>;
+  text: (text: string, status?: number) => Response;
+}
 
 /**
  * LINE Webhookハンドラ
  * LINEプラットフォームからのWebhookリクエストを処理する
  */
-export async function lineWebhookHandler(c: Context): Promise<Response> {
+export async function lineWebhookHandler(c: WebhookContext): Promise<Response> {
   console.log("=== Webhook Request Start ===");
   
   // リクエストボディをJSON形式で取得
-  const body = await c.req.json();
+  const body = await c.json();
   console.log("Request Body:", JSON.stringify(body, null, 2));
   
   // リクエストヘッダーからLINE署名を取得
-  const signature = c.req.header("x-line-signature");
+  const signature = c.header("x-line-signature");
   console.log("X-Line-Signature:", signature);
   
   // 署名の検証
@@ -52,12 +59,16 @@ export async function lineWebhookHandler(c: Context): Promise<Response> {
             console.log("Sending Response with Token:", event.replyToken);
             await sendTextMessage(event.replyToken, response);
             console.log("Response Sent Successfully");
-          } catch (innerError) {
-            console.error("Error processing message:", {
-              error: innerError,
-              message: innerError.message,
-              stack: innerError.stack
-            });
+          } catch (innerError: unknown) {
+            if (innerError instanceof Error) {
+              console.error("Error processing message:", {
+                error: innerError,
+                message: innerError.message,
+                stack: innerError.stack
+              });
+            } else {
+              console.error("Unknown error:", innerError);
+            }
             
             // エラー時のフォールバックメッセージ
             try {
@@ -79,12 +90,16 @@ export async function lineWebhookHandler(c: Context): Promise<Response> {
     console.log("=== Webhook Request End ===");
     // LINEプラットフォームには200 OKを返す
     return c.text("OK", 200);
-  } catch (error) {
-    console.error("Webhook processing error:", {
-      error: error,
-      message: error.message,
-      stack: error.stack
-    });
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      console.error("Webhook processing error:", {
+        error: error,
+        message: error.message,
+        stack: error.stack
+      });
+    } else {
+      console.error("Unknown webhook error:", error);
+    }
     // エラーがあっても200を返す（LINEプラットフォームの要件）
     console.log("=== Webhook Request End with Error ===");
     return c.text("OK", 200);

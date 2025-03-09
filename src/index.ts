@@ -9,6 +9,7 @@
 import { serve } from '@hono/node-server';
 import { Hono } from 'hono';
 import { lineWebhookHandler } from './handlers/line-webhook.js';
+import { WebhookContext } from './handlers/line-webhook.js';
 import dotenv from 'dotenv';
 
 // 環境変数の読み込み
@@ -29,7 +30,15 @@ app.get('/', (c) => {
 /**
  * LINE Webhookエンドポイント
  */
-app.post('/webhook', lineWebhookHandler);
+app.post('/webhook', async (c) => {
+  const context: WebhookContext = {
+    req: c.req.raw,
+    header: (name: string) => c.req.header(name),
+    json: () => c.req.json(),
+    text: (text: string, status?: number) => new Response(text, { status: status || 200 })
+  };
+  return await lineWebhookHandler(context);
+});
 
 /**
  * ヘルスチェックエンドポイント
